@@ -90,17 +90,57 @@ async def save_upload(f: UploadFile, dest: Path):
 
 def run_job(pid: int):
     db = SessionLocal()
+    out = None
+
     try:
         p = db.get(Project, pid)
-        p.status = "processing"; db.commit()
-        out = str(Path(p.voice_path).parent / "mix.mp3")
-        audio.render(p.voice_path, p.instru_path, out, p.style, json.loads(p.settings_json))
-        p.output_path = out; p.status = "done"
-    except Exception as e:
-        p.status = "error"; p.error = "Le traitement a échoué"; print("job error", e)
-    finally:
-        db.commit(); db.close()
 
+        if p is None:
+            return
+
+        p.status = "processing"
+        p.error = None
+        db.commit()
+
+        out = str(Path(p.voice_path).parent / "mix.mp3")
+
+        audio.render(
+            p.voice_path,
+            p.instru_path,
+            out,
+            p.style,
+            json.loads(p.settings_json)
+        )
+
+        # Vérifier que le projet existe toujours.
+        db.expire_all()
+        p = db.get(Project, pid)
+
+        if p is None:
+            Path(out).unlink(missing_ok=True)
+            return
+
+        p.output_path = out
+        p.status = "done"
+        db.commit()
+
+    except Exception as e:
+        db.rollback()
+
+        if out:
+            Path(out).unlink(missing_ok=True)
+
+        p = db.get(Project, pid)
+
+        if p is not None:
+            p.status = "error"
+            p.error = "Le traitement a échoué"
+            db.commit()
+
+        print("job error", e)
+
+    finally:
+        db.close()
 @app.get("/styles")
 def styles():
     return [{"key": k, "reverb": v["reverb"], "delay": v["delay"]} for k, v in audio.STYLES.items()]
