@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MixLab AI</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div id="pub" class="w">
+ <nav><a class="logo" href="#">Mix<b>Lab</b> AI</a>
+  <div class="links"><a class="h" href="#fonctions">Fonctionnalités</a><a class="h" href="#tarifs">Tarifs</a><a href="#" id="nl">Connexion</a><button class="btn sm" id="nb">Commencer</button></div></nav>
+ <header class="hero">
+  <h1>Le mixage professionnel, <span>sans la complexité.</span></h1>
+  <p class="sub">Améliore tes morceaux avec des outils de traitement audio intelligents. Importe ta voix et ton instru, choisis ton style, télécharge ton son.</p>
+  <div class="cta"><button class="btn" data-signup>Mixer mon premier son</button><a class="btn g" href="#fonctions">Découvrir le studio</a></div>
+  <div class="wave" id="wave" aria-hidden="true"></div>
+  <p class="mu">Ton son. Notre technologie. Ton identité.</p>
+ </header>
+ <section id="fonctions"><h2>Pensé pour les artistes</h2>
+  <div class="grid"><div class="c"><h3>Voix + instru</h3><p>Importe tes pistes séparées et règle l’équilibre avant le rendu.</p></div>
+  <div class="c"><h3>Traitement réel</h3><p>Égalisation, compression, réverb, delay, limiteur et normalisation avec FFmpeg.</p></div>
+  <div class="c"><h3>Fichiers privés</h3><p>Chaque compte voit uniquement ses projets. Suppression réelle des fichiers.</p></div>
+  <div class="c"><h3>Mobile d’abord</h3><p>Utilisable depuis un téléphone, sans rien installer.</p></div></div></section>
+ <section id="tarifs"><h2 class="ct">Un seul abonnement, simple</h2>
+  <div class="c pr"><span class="tag">7 jours d’essai gratuit</span><div class="price">30,99 €<small> / mois</small></div>
+  <ul><li>Studio de mixage complet</li><li>7 profils de style</li><li>Historique et exports</li><li>Annulable à tout moment</li></ul>
+  <button class="btn full" data-signup>Démarrer l’essai gratuit</button><p class="mu s">Sans carte pendant l’essai.</p></div></section>
+ <section><h2>FAQ</h2>
+  <details><summary>Comment marche l’essai ?</summary><p>7 jours complets dès l’inscription, sans carte. Ensuite il faut s’abonner (30,99 €/mois) pour continuer à mixer.</p></details>
+  <details><summary>Quels formats ?</summary><p>WAV, MP3 et FLAC. Le résultat est exporté en MP3 256 kb/s.</p></details>
+  <details><summary>Mes fichiers sont-ils privés ?</summary><p>Oui, jamais publics. Tu peux les supprimer à tout moment.</p></details></section>
+ <footer>Mentions légales · Politique de confidentialité · N’importe que des fichiers dont tu détiens les droits.</footer>
+</div>
+
+<div id="app" class="w" hidden>
+ <nav><span class="logo">Mix<b>Lab</b> AI</span><div class="links"><span id="uname" class="mu"></span><button class="btn g sm" id="out">Déconnexion</button></div></nav>
+ <div id="banner"></div>
+ <div class="tabs big"><button data-tab="studio" class="a">Studio</button><button data-tab="projets">Projets</button><button data-tab="abo">Abonnement</button></div>
+
+ <div id="tab-studio">
+  <div class="c">
+   <label>Nom du projet</label><input id="pname" maxlength="120" placeholder="Mon son">
+   <label>Voix (WAV, MP3, FLAC)</label><input id="fv" type="file" accept=".wav,.mp3,.flac,audio/*">
+   <label>Instrumental</label><input id="fi" type="file" accept=".wav,.mp3,.flac,audio/*">
+   <label>Style</label><select id="style"></select>
+   <label>Intensité du traitement : <b id="o1"></b></label><input id="intensity" type="range" min="0" max="100" value="50">
+   <label>Équilibre voix (dB) : <b id="o2"></b></label><input id="bal" type="range" min="-12" max="12" value="0">
+   <label>Réverbération : <b id="o3"></b></label><input id="rev" type="range" min="0" max="100">
+   <label>Delay : <b id="o4"></b></label><input id="del" type="range" min="0" max="100">
+   <p class="mu s">Égalisation et compression sont définies par le style, ajustées par l’intensité. Correction de hauteur et réduction du bruit : pas encore disponibles.</p>
+   <div class="er" id="er"></div>
+   <button class="btn full" id="go">Lancer le mixage</button>
+   <div id="prog" class="prog" hidden><div id="bar"></div></div><p id="st" class="mu"></p>
+  </div>
+  <div id="result"></div>
+ </div>
+ <div id="tab-projets" hidden></div>
+ <div id="tab-abo" hidden></div>
+</div>
+
+<div class="ov" id="ov" role="dialog" aria-modal="true"><div class="m">
+ <button class="x" id="cl" aria-label="Fermer">×</button>
+ <div class="tabs" id="atabs"><button id="t1" class="a">Inscription</button><button id="t2">Connexion</button></div>
+ <h3 id="ft" hidden></h3>
+ <label id="ln">Nom d’artiste</label><input id="n" autocomplete="nickname">
+ <label id="le">E-mail</label><input id="e" type="email" autocomplete="email">
+ <label id="lp">Mot de passe (8 caractères min.)</label><input id="p" type="password" autocomplete="current-password">
+ <div class="er" id="aer"></div>
+ <button class="btn full" id="ago">Créer mon compte</button>
+ <p class="mu s" id="anote">7 jours gratuits, sans carte.</p>
+ <p class="s"><a href="#" id="lf" class="mu">Mot de passe oublié ?</a></p>
+</div></div>
+<script src="app.js"></script>
+</body>
+</html>

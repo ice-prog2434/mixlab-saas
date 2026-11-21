@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: mixlab
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: mixlab
+    volumes: [dbdata:/var/lib/postgresql/data]
+  app:
+    build: .
+    restart: always
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://mixlab:${DB_PASSWORD}@db/mixlab
+      STORAGE_DIR: /data
+      APP_URL: https://${DOMAIN}
+    volumes: [storage:/data]
+    depends_on: [db]
+  caddy:
+    image: caddy:2
+    restart: always
+    ports: ["80:80", "443:443"]
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes: [./Caddyfile:/etc/caddy/Caddyfile, caddydata:/data]
+    depends_on: [app]
+volumes: {dbdata: {}, storage: {}, caddydata: {}}
