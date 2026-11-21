@@ -1,9 +1,20 @@
 import os
 os.environ["DATABASE_URL"] = "sqlite:///./test.db"
 os.environ["RATE_LIMIT_PER_MIN"] = "1000"
+
+import pytest
 from fastapi.testclient import TestClient
 from app.main import app
+from app.db import Base, engine
+
 c = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def clean_database():
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    yield
 
 def reg(email):
     return c.post("/auth/register", json={"email": email, "name": "Beat", "password": "motdepasse1"})

@@ -34,27 +34,46 @@ def current_user(cred: HTTPAuthorizationCredentials | None = Depends(bearer), db
 def has_access(user: User) -> bool:
     if user.sub_status in ("active", "trialing"):
         return True
-    return user.trial_ends_at > datetime.now(timezone.utc)
+
+    if not user.trial_ends_at:
+        return False
+
+    trial_ends_at = user.trial_ends_at
+
+    # SQLite peut retourner une date sans fuseau horaire.
+    if trial_ends_at.tzinfo is None:
+        trial_ends_at = trial_ends_at.replace(tzinfo=timezone.utc)
+
+    return trial_ends_at > datetime.now(timezone.utc)
+
 
 def require_access(user: User = Depends(current_user)) -> User:
     if not has_access(user):
         raise HTTPException(402, "Essai terminé : abonne-toi pour continuer")
     return user
 
+
 def require_admin(user: User = Depends(current_user)) -> User:
     if user.role != "admin":
         raise HTTPException(403, "Réservé aux administrateurs")
     return user
 
+
 _hits = collections.defaultdict(list)
 
+
 def rate_limit(req: Request):
-    """Limite simple en mémoire (1 processus). Derrière Caddy on lit la dernière IP de X-Forwarded-For."""
+    """Limite simple en mémoire (1 processus)."""
     xff = req.headers.get("x-forwarded-for")
-    ip = xff.split(",")[-1].strip() if xff else (req.client.host if req.client else "?")
+    ip = xff.split(",")[-1].strip() if xff else (
+        req.client.host if req.client else "?"
+    )
+
     t = time.time()
     h = [x for x in _hits[ip] if t - x < 60]
+
     if len(h) >= settings.rate_limit_per_min:
         raise HTTPException(429, "Trop de tentatives, réessaie dans une minute")
+
     h.append(t)
     _hits[ip] = h

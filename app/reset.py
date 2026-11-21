@@ -36,13 +36,35 @@ def forgot(b: Forgot, bg: BackgroundTasks, db: Session = Depends(get_db)):
 
 @router.post("/auth/reset", dependencies=[Depends(rate_limit)])
 def reset(b: Reset, db: Session = Depends(get_db)):
-    r = db.query(PasswordReset).filter(PasswordReset.token_hash == _h(b.token)).first()
-    if not r or r.used or r.expires_at < datetime.now(timezone.utc):
+    r = db.query(PasswordReset).filter(
+        PasswordReset.token_hash == _h(b.token)
+    ).first()
+
+    if not r or r.used:
         raise HTTPException(400, "Lien invalide ou expiré")
+
+    expires_at = r.expires_at
+
+    # SQLite peut retourner une date sans fuseau horaire.
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(400, "Lien invalide ou expiré")
+
     u = db.get(User, r.user_id)
+
+    if not u:
+        raise HTTPException(400, "Lien invalide ou expiré")
+
     u.password_hash = hash_pw(b.password)
     r.used = True
-    for o in db.query(PasswordReset).filter(PasswordReset.user_id == u.id, PasswordReset.used == False):  # noqa: E712
+
+    for o in db.query(PasswordReset).filter(
+        PasswordReset.user_id == u.id,
+        PasswordReset.used == False
+    ):
         o.used = True
+
     db.commit()
     return {"ok": True}
