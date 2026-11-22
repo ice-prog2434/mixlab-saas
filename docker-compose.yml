@@ -6,7 +6,14 @@ services:
       POSTGRES_USER: mixlab
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: mixlab
-    volumes: [dbdata:/var/lib/postgresql/data]
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mixlab -d mixlab"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   app:
     build: .
     restart: always
@@ -15,14 +22,27 @@ services:
       DATABASE_URL: postgresql+psycopg://mixlab:${DB_PASSWORD}@db/mixlab
       STORAGE_DIR: /data
       APP_URL: https://${DOMAIN}
-    volumes: [storage:/data]
-    depends_on: [db]
+    volumes:
+      - storage:/data
+    depends_on:
+      db:
+        condition: service_healthy
+
   caddy:
     image: caddy:2
     restart: always
-    ports: ["80:80", "443:443"]
+    ports:
+      - "80:80"
+      - "443:443"
     environment:
       DOMAIN: ${DOMAIN}
-    volumes: [./Caddyfile:/etc/caddy/Caddyfile, caddydata:/data]
-    depends_on: [app]
-volumes: {dbdata: {}, storage: {}, caddydata: {}}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddydata:/data
+    depends_on:
+      - app
+
+volumes:
+  dbdata:
+  storage:
+  caddydata:
